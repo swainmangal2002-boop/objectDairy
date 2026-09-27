@@ -106,12 +106,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: AppTheme.primary.withOpacity(0.35),
+          color: AppTheme.primary.withValues(alpha:0.35),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.14),
+            color: Colors.black.withValues(alpha:0.14),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -125,10 +125,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.12),
+                color: Colors.white.withValues(alpha:0.12),
                 borderRadius: BorderRadius.circular(17),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.16),
+                  color: Colors.white.withValues(alpha:0.16),
                 ),
               ),
               child: const Icon(
@@ -169,10 +169,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.09),
+                color: Colors.white.withValues(alpha:0.09),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.13),
+                  color: Colors.white.withValues(alpha:0.13),
                 ),
               ),
               child: const Icon(
@@ -209,7 +209,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.035),
+              color: Colors.black.withValues(alpha:0.035),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -279,7 +279,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.025),
+                color: Colors.black.withValues(alpha:0.025),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -326,7 +326,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (_, _) =>
             const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final category = categories[index];
@@ -517,10 +517,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.warning.withOpacity(0.08),
+        color: AppTheme.warning.withValues(alpha:0.08),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.warning.withOpacity(0.25),
+          color: AppTheme.warning.withValues(alpha:0.25),
         ),
       ),
       child: Row(
@@ -529,7 +529,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppTheme.warning.withOpacity(0.14),
+              color: AppTheme.warning.withValues(alpha:0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
@@ -720,7 +720,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primary.withOpacity(0.25),
+              color: AppTheme.primary.withValues(alpha:0.25),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),

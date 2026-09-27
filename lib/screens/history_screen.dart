@@ -149,10 +149,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: eventColor.withOpacity(0.10),
+                  color: eventColor.withValues(alpha:0.10),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: eventColor.withOpacity(0.18),
+                    color: eventColor.withValues(alpha:0.18),
                   ),
                 ),
                 child: Icon(
@@ -170,7 +170,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: eventColor.withOpacity(0.15),
+                    color: eventColor.withValues(alpha:0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -198,7 +198,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.025),
+                  color: eventColor.withValues(alpha:0.25),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -216,7 +216,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: eventColor.withOpacity(0.09),
+                        color: eventColor.withValues(alpha:0.09),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -438,7 +438,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   width: 54,
                   height: 54,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.10),
+                    color: Colors.white.withValues(alpha:0.10),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: const Icon(

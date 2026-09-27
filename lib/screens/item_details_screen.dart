@@ -217,10 +217,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.16),
+                  color: categoryColor.withValues(alpha:0.16),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(
-                    color: categoryColor.withOpacity(0.30),
+                    color: categoryColor.withValues(alpha:0.30),
                   ),
                 ),
                 child: Icon(
@@ -295,7 +295,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color: color.withValues(alpha:0.10),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
@@ -365,10 +365,10 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: warrantyColor.withOpacity(0.08),
+        color: warrantyColor.withValues(alpha:0.08),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: warrantyColor.withOpacity(0.22),
+          color: warrantyColor.withValues(alpha:0.22),
         ),
       ),
       child: Column(
@@ -381,7 +381,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: warrantyColor.withOpacity(0.14),
+                  color: warrantyColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(
@@ -505,7 +505,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.10),
+                color: Colors.white.withValues(alpha:0.10),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(

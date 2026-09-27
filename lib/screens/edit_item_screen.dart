@@ -196,7 +196,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
-                ? AppTheme.primary.withOpacity(0.35)
+                ? AppTheme.primary.withValues(alpha:0.35)
                 : AppTheme.border,
           ),
         ),
@@ -365,7 +365,7 @@ class _EditItemScreenState extends State<EditItemScreen> {
                     height: 58,
                     decoration: BoxDecoration(
                       color:
-                      categoryColor.withOpacity(0.15),
+                      categoryColor.withValues(alpha:0.15),
                       borderRadius:
                       BorderRadius.circular(17),
                     ),

@@ -205,7 +205,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
-                ? AppTheme.primary.withOpacity(0.35)
+                ? AppTheme.primary.withValues(alpha:0.35)
                 : AppTheme.border,
           ),
         ),
@@ -328,7 +328,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.10),
+                      color: Colors.white.withValues(alpha:0.10),
                       borderRadius: BorderRadius.circular(15),
                     ),
                     child: const Icon(

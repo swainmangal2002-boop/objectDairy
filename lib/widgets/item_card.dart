@@ -37,7 +37,7 @@ class ItemCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.035),
+                color: Colors.black.withValues(alpha:0.035),
                 blurRadius: 14,
                 offset: const Offset(0, 5),
               ),
@@ -50,10 +50,10 @@ class ItemCard extends StatelessWidget {
                 height: 62,
                 width: 62,
                 decoration: BoxDecoration(
-                  color: categoryColor.withOpacity(0.10),
+                  color: categoryColor.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: categoryColor.withOpacity(0.12),
+                    color: categoryColor.withValues(alpha: 0.12),
                   ),
                 ),
                 child: Icon(

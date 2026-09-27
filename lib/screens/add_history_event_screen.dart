@@ -330,10 +330,10 @@ class _AddHistoryEventScreenState
                     width: 58,
                     height: 58,
                     decoration: BoxDecoration(
-                      color: eventColor.withOpacity(0.16),
+                      color: eventColor.withValues(alpha:0.16),
                       borderRadius: BorderRadius.circular(17),
                       border: Border.all(
-                        color: eventColor.withOpacity(0.25),
+                        color: eventColor.withValues(alpha:0.25),
                       ),
                     ),
                     child: Icon(
