@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../models/item_model.dart';
+import '../theme/app_theme.dart';
 
 class ItemCard extends StatelessWidget {
   final Item item;
@@ -13,28 +15,12 @@ class ItemCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  IconData _getIcon(String category) {
-    switch (category.toLowerCase()) {
-      case 'electronics':
-        return Icons.devices_outlined;
-      case 'books':
-        return Icons.menu_book_outlined;
-      case 'furniture':
-        return Icons.chair_outlined;
-      case 'documents':
-        return Icons.description_outlined;
-      case 'appliances':
-        return Icons.kitchen_outlined;
-      case 'accessories':
-        return Icons.watch_outlined;
-      default:
-        return Icons.inventory_2_outlined;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final categoryColor = AppTheme.categoryColor(item.category);
+    final categoryIcon = AppTheme.categoryIcon(item.category);
+
+    final hasWarranty = item.warrantyExpiry != null;
 
     return Material(
       color: Colors.transparent,
@@ -42,43 +28,56 @@ class ItemCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(22),
         child: Ink(
-          padding: const EdgeInsets.all(17),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .surfaceContainerHighest,
+            color: AppTheme.surface,
             borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: color.withValues(alpha: 0.08),
+              color: AppTheme.border,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.035),
+                blurRadius: 14,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: Row(
             children: [
+              // Item icon
               Container(
-                height: 58,
-                width: 58,
+                height: 62,
+                width: 62,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.10),
+                  color: categoryColor.withOpacity(0.10),
                   borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: categoryColor.withOpacity(0.12),
+                  ),
                 ),
                 child: Icon(
-                  _getIcon(item.category),
-                  color: color,
-                  size: 28,
+                  categoryIcon,
+                  color: categoryColor,
+                  size: 29,
                 ),
               ),
 
-              const SizedBox(width: 15),
+              const SizedBox(width: 14),
 
+              // Item information
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
+                        color: AppTheme.textDark,
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
 
@@ -87,29 +86,64 @@ class ItemCard extends StatelessWidget {
                     Text(
                       item.category,
                       style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
+                        color: categoryColor,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
                       ),
+                    ),
+
+                    const SizedBox(height: 9),
+
+                    // Location
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 15,
+                          color: AppTheme.textGrey,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            item.location.isEmpty
+                                ? 'Location not added'
+                                : item.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.textGrey,
+                              fontSize: 11.5,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 7),
 
+                    // Warranty
                     Row(
                       children: [
                         Icon(
-                          Icons.location_on_outlined,
+                          hasWarranty
+                              ? Icons.verified_outlined
+                              : Icons.info_outline_rounded,
                           size: 14,
-                          color: Colors.grey.shade600,
+                          color: hasWarranty
+                              ? AppTheme.success
+                              : AppTheme.textLight,
                         ),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          child: Text(
-                            item.location,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 12,
-                            ),
+                        const SizedBox(width: 4),
+                        Text(
+                          hasWarranty
+                              ? 'Warranty available'
+                              : 'No warranty added',
+                          style: TextStyle(
+                            color: hasWarranty
+                                ? AppTheme.success
+                                : AppTheme.textLight,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
@@ -118,20 +152,43 @@ class ItemCard extends StatelessWidget {
                 ),
               ),
 
+              const SizedBox(width: 6),
+
+              // Menu
               PopupMenuButton<String>(
+                tooltip: 'Item options',
+                padding: EdgeInsets.zero,
+                icon: const Icon(
+                  Icons.more_vert_rounded,
+                  color: AppTheme.textGrey,
+                  size: 22,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 onSelected: (value) {
                   if (value == 'delete') {
                     onDelete();
                   }
                 },
                 itemBuilder: (_) => const [
-                  PopupMenuItem(
+                  PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline),
+                        Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppTheme.error,
+                          size: 20,
+                        ),
                         SizedBox(width: 10),
-                        Text('Delete'),
+                        Text(
+                          'Delete',
+                          style: TextStyle(
+                            color: AppTheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),

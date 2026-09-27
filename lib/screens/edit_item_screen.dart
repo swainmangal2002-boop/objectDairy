@@ -3,24 +3,28 @@ import 'package:flutter/material.dart';
 import '../models/item_model.dart';
 import '../theme/app_theme.dart';
 
-class AddItemScreen extends StatefulWidget {
-  const AddItemScreen({super.key});
+class EditItemScreen extends StatefulWidget {
+  final Item item;
+
+  const EditItemScreen({
+    super.key,
+    required this.item,
+  });
 
   @override
-  State<AddItemScreen> createState() => _AddItemScreenState();
+  State<EditItemScreen> createState() => _EditItemScreenState();
 }
 
-class _AddItemScreenState extends State<AddItemScreen> {
+class _EditItemScreenState extends State<EditItemScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final nameController = TextEditingController();
-  final priceController = TextEditingController();
-  final locationController = TextEditingController();
-  final descriptionController = TextEditingController();
+  late TextEditingController nameController;
+  late TextEditingController priceController;
+  late TextEditingController locationController;
+  late TextEditingController descriptionController;
 
-  String selectedCategory = 'Electronics';
-
-  DateTime? purchaseDate;
+  late String selectedCategory;
+  late DateTime purchaseDate;
   DateTime? warrantyExpiry;
 
   final List<String> categories = [
@@ -34,51 +38,32 @@ class _AddItemScreenState extends State<AddItemScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    final item = widget.item;
+
+    nameController = TextEditingController(text: item.name);
+    priceController = TextEditingController(
+      text: item.purchasePrice.toStringAsFixed(2),
+    );
+    locationController =
+        TextEditingController(text: item.location);
+    descriptionController =
+        TextEditingController(text: item.description);
+
+    selectedCategory = item.category;
+    purchaseDate = item.purchaseDate;
+    warrantyExpiry = item.warrantyExpiry;
+  }
+
+  @override
   void dispose() {
     nameController.dispose();
     priceController.dispose();
     locationController.dispose();
     descriptionController.dispose();
     super.dispose();
-  }
-
-  // ------------------------------------------------------------
-  // DATE PICKER
-  // ------------------------------------------------------------
-
-  Future<void> _selectDate({
-    required bool warranty,
-  }) async {
-    final initialDate = warranty
-        ? (warrantyExpiry ?? DateTime.now())
-        : (purchaseDate ?? DateTime.now());
-
-    final selected = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(1990),
-      lastDate: DateTime(2100),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: AppTheme.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-
-    if (selected == null) return;
-
-    setState(() {
-      if (warranty) {
-        warrantyExpiry = selected;
-      } else {
-        purchaseDate = selected;
-      }
-    });
   }
 
   // ------------------------------------------------------------
@@ -96,38 +81,43 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   // ------------------------------------------------------------
-  // SAVE ITEM
+  // DATE PICKER
   // ------------------------------------------------------------
 
-  void _saveItem() {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  Future<void> _selectDate({
+    required bool warranty,
+  }) async {
+    final initialDate = warranty
+        ? (warrantyExpiry ?? DateTime.now())
+        : purchaseDate;
 
-    if (purchaseDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select the purchase date'),
-        ),
-      );
-      return;
-    }
-
-    final price =
-        double.tryParse(priceController.text.trim()) ?? 0;
-
-    final item = Item(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: nameController.text.trim(),
-      category: selectedCategory,
-      purchaseDate: purchaseDate!,
-      purchasePrice: price,
-      location: locationController.text.trim(),
-      warrantyExpiry: warrantyExpiry,
-      description: descriptionController.text.trim(),
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1990),
+      lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme:
+            Theme.of(context).colorScheme.copyWith(
+              primary: AppTheme.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
-    Navigator.pop(context, item);
+    if (date == null) return;
+
+    setState(() {
+      if (warranty) {
+        warrantyExpiry = date;
+      } else {
+        purchaseDate = date;
+      }
+    });
   }
 
   // ------------------------------------------------------------
@@ -157,7 +147,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
         const SizedBox(width: 12),
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+            CrossAxisAlignment.start,
             children: [
               Text(
                 title,
@@ -201,7 +192,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
@@ -228,12 +219,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 size: 21,
               ),
             ),
-
             const SizedBox(width: 12),
-
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
@@ -245,20 +235,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    selected ? _formatDate(date) : subtitle,
+                    selected
+                        ? _formatDate(date)
+                        : subtitle,
                     style: TextStyle(
                       color: selected
                           ? AppTheme.primary
                           : AppTheme.textGrey,
                       fontSize: 11.5,
-                      fontWeight:
-                      selected ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                 ],
               ),
             ),
-
             const Icon(
               Icons.chevron_right_rounded,
               color: AppTheme.textLight,
@@ -270,26 +262,70 @@ class _AddItemScreenState extends State<AddItemScreen> {
   }
 
   // ------------------------------------------------------------
+  // UPDATE ITEM
+  // ------------------------------------------------------------
+
+  void _updateItem() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    final price =
+    double.tryParse(priceController.text.trim());
+
+    if (price == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid price'),
+        ),
+      );
+      return;
+    }
+
+    widget.item.name = nameController.text.trim();
+    widget.item.category = selectedCategory;
+    widget.item.purchasePrice = price;
+    widget.item.purchaseDate = purchaseDate;
+    widget.item.location =
+        locationController.text.trim();
+    widget.item.warrantyExpiry = warrantyExpiry;
+    widget.item.description =
+        descriptionController.text.trim();
+
+    Navigator.pop(context, true);
+  }
+
+  // ------------------------------------------------------------
   // BUILD
   // ------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    final categoryColor =
+    AppTheme.categoryColor(selectedCategory);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
 
       appBar: AppBar(
         title: const Text(
-          'Add New Item',
+          'Edit Item',
           style: TextStyle(
-            fontWeight: FontWeight.w800,
             color: AppTheme.textDark,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
+        actions: [
+          IconButton(
+            tooltip: 'Save changes',
+            onPressed: _updateItem,
+            icon: const Icon(
+              Icons.check_rounded,
+              color: AppTheme.primary,
+            ),
+          ),
+          const SizedBox(width: 6),
+        ],
       ),
 
       body: Form(
@@ -299,11 +335,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
             16,
             8,
             16,
-            120,
+            40,
           ),
           children: [
             // ====================================================
-            // INTRO
+            // ITEM PREVIEW
             // ====================================================
 
             Container(
@@ -317,7 +353,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     AppTheme.navyLight,
                   ],
                 ),
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: const Color(0xFF4A4D78),
                 ),
@@ -325,40 +361,44 @@ class _AddItemScreenState extends State<AddItemScreen> {
               child: Row(
                 children: [
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: 58,
+                    height: 58,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.10),
-                      borderRadius: BorderRadius.circular(15),
+                      color:
+                      categoryColor.withOpacity(0.15),
+                      borderRadius:
+                      BorderRadius.circular(17),
                     ),
-                    child: const Icon(
-                      Icons.inventory_2_outlined,
-                      color: Colors.white,
-                      size: 26,
+                    child: Icon(
+                      AppTheme.categoryIcon(
+                        selectedCategory,
+                      ),
+                      color: categoryColor,
+                      size: 28,
                     ),
                   ),
-
                   const SizedBox(width: 14),
-
-                  const Expanded(
+                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment:
+                      CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Record a belonging',
+                        const Text(
+                          'Update Your Item',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: 17,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
-                          'Add details so you can keep its history organized.',
-                          style: TextStyle(
+                          'Editing ${widget.item.name}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
                             color: Color(0xFFBFC2DB),
                             fontSize: 11.5,
-                            height: 1.4,
                           ),
                         ),
                       ],
@@ -368,7 +408,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ),
             ),
 
-            const SizedBox(height: 26),
+            const SizedBox(height: 27),
 
             // ====================================================
             // BASIC INFORMATION
@@ -377,23 +417,24 @@ class _AddItemScreenState extends State<AddItemScreen> {
             _sectionHeader(
               Icons.info_outline_rounded,
               'Basic Information',
-              'Tell us about your belonging',
+              'Update the item details',
             ),
 
             const SizedBox(height: 14),
 
             TextFormField(
               controller: nameController,
-              textCapitalization: TextCapitalization.words,
+              textCapitalization:
+              TextCapitalization.words,
               decoration: const InputDecoration(
                 labelText: 'Item Name',
-                hintText: 'e.g. MacBook Air M4',
                 prefixIcon: Icon(
                   Icons.inventory_2_outlined,
                 ),
               ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
+                if (value == null ||
+                    value.trim().isEmpty) {
                   return 'Please enter the item name';
                 }
                 return null;
@@ -403,7 +444,11 @@ class _AddItemScreenState extends State<AddItemScreen> {
             const SizedBox(height: 14),
 
             DropdownButtonFormField<String>(
-              initialValue: selectedCategory,
+              initialValue: categories.contains(
+                selectedCategory,
+              )
+                  ? selectedCategory
+                  : 'Other',
               decoration: const InputDecoration(
                 labelText: 'Category',
                 prefixIcon: Icon(
@@ -411,9 +456,20 @@ class _AddItemScreenState extends State<AddItemScreen> {
                 ),
               ),
               items: categories.map((category) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<String>(
                   value: category,
-                  child: Text(category),
+                  child: Row(
+                    children: [
+                      Icon(
+                        AppTheme.categoryIcon(category),
+                        size: 18,
+                        color:
+                        AppTheme.categoryColor(category),
+                      ),
+                      const SizedBox(width: 9),
+                      Text(category),
+                    ],
+                  ),
                 );
               }).toList(),
               onChanged: (value) {
@@ -425,7 +481,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
               },
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 27),
 
             // ====================================================
             // PURCHASE DETAILS
@@ -434,29 +490,31 @@ class _AddItemScreenState extends State<AddItemScreen> {
             _sectionHeader(
               Icons.shopping_bag_outlined,
               'Purchase Details',
-              'Keep track of when and how much',
+              'Update purchase information',
             ),
 
             const SizedBox(height: 14),
 
             TextFormField(
               controller: priceController,
-              keyboardType: const TextInputType.numberWithOptions(
+              keyboardType:
+              const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               decoration: const InputDecoration(
                 labelText: 'Purchase Price',
-                hintText: 'e.g. 75000',
                 prefixIcon: Icon(
                   Icons.currency_rupee_rounded,
                 ),
               ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
+                if (value == null ||
+                    value.trim().isEmpty) {
                   return 'Please enter the purchase price';
                 }
 
-                if (double.tryParse(value.trim()) == null) {
+                if (double.tryParse(value.trim()) ==
+                    null) {
                   return 'Enter a valid price';
                 }
 
@@ -468,45 +526,47 @@ class _AddItemScreenState extends State<AddItemScreen> {
 
             _dateField(
               title: 'Purchase Date',
-              subtitle: 'When did you purchase it?',
+              subtitle: 'Select purchase date',
               date: purchaseDate,
-              onTap: () => _selectDate(warranty: false),
+              onTap: () =>
+                  _selectDate(warranty: false),
               icon: Icons.calendar_today_outlined,
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 27),
 
             // ====================================================
-            // STORAGE
+            // LOCATION
             // ====================================================
 
             _sectionHeader(
               Icons.location_on_outlined,
               'Storage & Location',
-              'Where is this item currently kept?',
+              'Update where the item is kept',
             ),
 
             const SizedBox(height: 14),
 
             TextFormField(
               controller: locationController,
-              textCapitalization: TextCapitalization.words,
+              textCapitalization:
+              TextCapitalization.words,
               decoration: const InputDecoration(
-                labelText: 'Location',
-                hintText: 'e.g. Bedroom, Office, Locker',
+                labelText: 'Current Location',
                 prefixIcon: Icon(
                   Icons.location_on_outlined,
                 ),
               ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
+                if (value == null ||
+                    value.trim().isEmpty) {
                   return 'Please enter the location';
                 }
                 return null;
               },
             ),
 
-            const SizedBox(height: 28),
+            const SizedBox(height: 27),
 
             // ====================================================
             // WARRANTY
@@ -515,7 +575,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             _sectionHeader(
               Icons.verified_outlined,
               'Warranty',
-              'Save the warranty expiry date',
+              'Update warranty information',
             ),
 
             const SizedBox(height: 14),
@@ -524,11 +584,36 @@ class _AddItemScreenState extends State<AddItemScreen> {
               title: 'Warranty Expiry',
               subtitle: 'Optional',
               date: warrantyExpiry,
-              onTap: () => _selectDate(warranty: true),
+              onTap: () =>
+                  _selectDate(warranty: true),
               icon: Icons.verified_outlined,
             ),
 
-            const SizedBox(height: 28),
+            if (warrantyExpiry != null) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      warrantyExpiry = null;
+                    });
+                  },
+                  icon: const Icon(
+                    Icons.clear_rounded,
+                    size: 17,
+                  ),
+                  label: const Text(
+                    'Remove warranty date',
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.error,
+                  ),
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 20),
 
             // ====================================================
             // DESCRIPTION
@@ -537,7 +622,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
             _sectionHeader(
               Icons.notes_outlined,
               'Additional Information',
-              'Add notes or useful details',
+              'Update notes and other details',
             ),
 
             const SizedBox(height: 14),
@@ -545,7 +630,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
             TextFormField(
               controller: descriptionController,
               maxLines: 5,
-              textCapitalization: TextCapitalization.sentences,
+              textCapitalization:
+              TextCapitalization.sentences,
               decoration: const InputDecoration(
                 labelText: 'Description',
                 hintText:
@@ -569,12 +655,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
             SizedBox(
               height: 56,
               child: FilledButton.icon(
-                onPressed: _saveItem,
+                onPressed: _updateItem,
                 icon: const Icon(
-                  Icons.check_rounded,
+                  Icons.save_outlined,
                 ),
                 label: const Text(
-                  'Save Item',
+                  'Save Changes',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -583,11 +669,12 @@ class _AddItemScreenState extends State<AddItemScreen> {
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             Center(
               child: TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () =>
+                    Navigator.pop(context),
                 child: const Text(
                   'Cancel',
                   style: TextStyle(
