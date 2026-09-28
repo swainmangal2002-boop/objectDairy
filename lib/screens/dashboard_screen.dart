@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../models/item_model.dart';
-import '../services/item_service.dart';
 import '../services/warranty_service.dart';
+import '../services/firestore_service.dart';
 import '../widgets/item_card.dart';
 import '../theme/app_theme.dart';
 import 'add_item_screen.dart';
@@ -16,7 +16,8 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final ItemService itemService = ItemService();
+  final FirestoreService firestoreService = FirestoreService();
+
   final TextEditingController searchController = TextEditingController();
 
   String selectedCategory = 'All';
@@ -51,18 +52,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // FILTER
   // ------------------------------------------------------------
 
-  List<Item> getFilteredItems() {
+  List<Item> getFilteredItems(List<Item> allItems) {
     final query = searchController.text.trim().toLowerCase();
 
-    return itemService.items.where((item) {
+    return allItems.where((item) {
       final matchesSearch =
           item.name.toLowerCase().contains(query) ||
-              item.category.toLowerCase().contains(query) ||
-              item.location.toLowerCase().contains(query);
+          item.category.toLowerCase().contains(query) ||
+          item.location.toLowerCase().contains(query);
 
       final matchesCategory =
-          selectedCategory == 'All' ||
-              item.category == selectedCategory;
+          selectedCategory == 'All' || item.category == selectedCategory;
 
       return matchesSearch && matchesCategory;
     }).toList();
@@ -75,15 +75,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _addItem() async {
     final item = await Navigator.push<Item>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const AddItemScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const AddItemScreen()),
     );
 
-    if (item != null) {
-      setState(() {
-        itemService.addItem(item);
-      });
+    if (item == null) return;
+
+    try {
+      await firestoreService.addItem(item);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Item saved successfully')));
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to save item: $e')));
     }
   }
 
@@ -98,20 +107,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppTheme.navy,
-            AppTheme.navyLight,
-            AppTheme.primaryDark,
-          ],
+          colors: [AppTheme.navy, AppTheme.navyLight, AppTheme.primaryDark],
         ),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: AppTheme.primary.withValues(alpha:0.35),
+          color: AppTheme.primary.withValues(alpha: 0.35),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.14),
+            color: Colors.black.withValues(alpha: 0.14),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -125,11 +130,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.12),
+                color: Colors.white.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(17),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha:0.16),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
               ),
               child: const Icon(
                 Icons.inventory_2_outlined,
@@ -156,10 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   SizedBox(height: 4),
                   Text(
                     'Your belongings. Your history.',
-                    style: TextStyle(
-                      color: Color(0xFFBFC2DB),
-                      fontSize: 12.5,
-                    ),
+                    style: TextStyle(color: Color(0xFFBFC2DB), fontSize: 12.5),
                   ),
                 ],
               ),
@@ -169,11 +169,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha:0.09),
+                color: Colors.white.withValues(alpha: 0.09),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha:0.13),
-                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.13)),
               ),
               child: const Icon(
                 Icons.notifications_none_rounded,
@@ -204,12 +202,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         decoration: BoxDecoration(
           color: AppTheme.surface,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppTheme.border,
-          ),
+          border: Border.all(color: AppTheme.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.035),
+              color: Colors.black.withValues(alpha: 0.035),
               blurRadius: 14,
               offset: const Offset(0, 5),
             ),
@@ -224,11 +220,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: iconBackground,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 22,
-              ),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
 
             const SizedBox(width: 11),
@@ -274,12 +266,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           decoration: BoxDecoration(
             color: AppTheme.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: AppTheme.border,
-            ),
+            border: Border.all(color: AppTheme.border),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.025),
+                color: Colors.black.withValues(alpha: 0.025),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -287,27 +277,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           child: TextField(
             controller: searchController,
-            style: const TextStyle(
-              color: AppTheme.textDark,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: AppTheme.textDark, fontSize: 14),
             decoration: InputDecoration(
-              hintText:
-              'Search belongings, categories or locations...',
+              hintText: 'Search belongings, categories or locations...',
               prefixIcon: const Icon(
                 Icons.search_rounded,
                 color: AppTheme.textMedium,
               ),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(
-                onPressed: () {
-                  searchController.clear();
-                },
-                icon: const Icon(
-                  Icons.close_rounded,
-                  size: 20,
-                ),
-              )
+                      onPressed: () {
+                        searchController.clear();
+                      },
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                    )
                   : null,
               filled: false,
               border: InputBorder.none,
@@ -326,8 +309,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, _) =>
-            const SizedBox(width: 8),
+            separatorBuilder: (context, index) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
               final category = categories[index];
               final selected = selectedCategory == category;
@@ -341,28 +323,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   });
                 },
                 labelStyle: TextStyle(
-                  color: selected
-                      ? Colors.white
-                      : AppTheme.textDark,
+                  color: selected ? Colors.white : AppTheme.textDark,
                   fontSize: 12,
-                  fontWeight: selected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
                 backgroundColor: AppTheme.surface,
                 selectedColor: AppTheme.primary,
                 checkmarkColor: Colors.white,
                 side: BorderSide(
-                  color: selected
-                      ? AppTheme.primary
-                      : AppTheme.borderDark,
+                  color: selected ? AppTheme.primary : AppTheme.borderDark,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 5,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 5),
               );
             },
           ),
@@ -375,19 +349,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // EMPTY STATE
   // ------------------------------------------------------------
 
-  Widget _buildEmptyState({
-    required bool hasItems,
-  }) {
+  Widget _buildEmptyState({required bool hasItems}) {
     final hasFilters =
-        searchController.text.isNotEmpty ||
-            selectedCategory != 'All';
+        searchController.text.isNotEmpty || selectedCategory != 'All';
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 48,
-        left: 20,
-        right: 20,
-      ),
+      padding: const EdgeInsets.only(top: 48, left: 20, right: 20),
       child: Column(
         children: [
           Container(
@@ -395,15 +362,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             height: 105,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [
-                  AppTheme.primaryLight,
-                  Color(0xFFDCD7FF),
-                ],
+                colors: [AppTheme.primaryLight, Color(0xFFDCD7FF)],
               ),
               shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFD1CBFF),
-              ),
+              border: Border.all(color: const Color(0xFFD1CBFF)),
             ),
             child: const Icon(
               Icons.inventory_2_outlined,
@@ -415,9 +377,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 24),
 
           Text(
-            hasFilters
-                ? 'No belongings found'
-                : 'Start your ObjectDiary',
+            hasFilters ? 'No belongings found' : 'Start your ObjectDiary',
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w800,
@@ -428,9 +388,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 8),
 
           Text(
-            hasFilters
-                ? 'Try another search or category.'
-                : 'Add your belongings and start keeping their digital history.',
+            hasFilters ? 'Try another search or category.' : 'Add your belongings and start keeping their digital history.',
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 13,
@@ -467,40 +425,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // DELETE
   // ------------------------------------------------------------
 
-  void _deleteItem(Item item) {
-    showDialog(
+  Future<void> _deleteItem(Item item) async {
+    final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Delete Item'),
-          content: Text(
-            'Are you sure you want to delete "${item.name}"?',
-          ),
+          content: Text('Are you sure you want to delete "${item.name}"?'),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(dialogContext);
+                Navigator.pop(dialogContext, false);
               },
               child: const Text('Cancel'),
             ),
             FilledButton(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.error,
-              ),
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.error),
               onPressed: () {
-                setState(() {
-                  itemService.deleteItem(item.id);
-                });
-
-                Navigator.pop(dialogContext);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '${item.name} deleted successfully',
-                    ),
-                  ),
-                );
+                Navigator.pop(dialogContext, true);
               },
               child: const Text('Delete'),
             ),
@@ -508,20 +450,36 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       },
     );
+
+    if (confirmed != true) return;
+
+    try {
+      await firestoreService.deleteItem(item.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${item.name} deleted successfully')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to delete item: $e')));
+    }
   }
-// ------------------------------------------------------------
-// WARRANTY ALERT
-// ------------------------------------------------------------
+
+  // ------------------------------------------------------------
+  // WARRANTY ALERT
+  // ------------------------------------------------------------
 
   Widget _buildWarrantyAlert(int count) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.warning.withValues(alpha:0.08),
+        color: AppTheme.warning.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppTheme.warning.withValues(alpha:0.25),
-        ),
+        border: Border.all(color: AppTheme.warning.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -529,7 +487,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 46,
             height: 46,
             decoration: BoxDecoration(
-              color: AppTheme.warning.withValues(alpha:0.14),
+              color: AppTheme.warning.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
@@ -558,10 +516,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 const Text(
                   'Check your warranty before it expires.',
-                  style: TextStyle(
-                    color: AppTheme.textGrey,
-                    fontSize: 11.5,
-                  ),
+                  style: TextStyle(color: AppTheme.textGrey, fontSize: 11.5),
                 ),
               ],
             ),
@@ -576,22 +531,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+
   // ------------------------------------------------------------
   // MAIN SCREEN
   // ------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final allItems = itemService.items;
-    final filteredItems = getFilteredItems();
-
-    final warrantyCount = allItems.where((item) {
-      return WarrantyService.isActive(item);
-    }).length;
-
-    final expiringSoonCount =
-        WarrantyService.getExpiringItems(allItems).length;
-
     return Scaffold(
       backgroundColor: AppTheme.background,
 
@@ -601,126 +547,196 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildTopBar(),
 
             Expanded(
-              child: RefreshIndicator(
-                color: AppTheme.primary,
-                onRefresh: () async {
-                  setState(() {});
-                },
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    16,
-                    18,
-                    16,
-                    100,
-                  ),
-                  children: [
-                    // Statistics
-                    Row(
-                      children: [
-                        _buildStatCard(
-                          icon: Icons.inventory_2_outlined,
-                          value: '${allItems.length}',
-                          title: 'Total Items',
-                          iconColor: AppTheme.primary,
-                          iconBackground:
-                          AppTheme.primaryLight,
-                        ),
+              child: StreamBuilder<List<Item>>(
+                stream: firestoreService.getItems(),
+                builder: (context, snapshot) {
+                  // Loading
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                        const SizedBox(width: 12),
-
-                        _buildStatCard(
-                          icon: Icons.verified_outlined,
-                          value: '$warrantyCount',
-                          title: 'With Warranty',
-                          iconColor: AppTheme.mint,
-                          iconBackground:
-                          AppTheme.mintLight,
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 22),
-
-                    if (expiringSoonCount > 0) ...[
-                      _buildWarrantyAlert(expiringSoonCount),
-                      const SizedBox(height: 22),
-                    ],
-
-                    _buildSearchSection(),
-
-                    const SizedBox(height: 24),
-
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            'My Belongings',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.textDark,
-                              letterSpacing: -0.4,
+                  // Error
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.cloud_off_rounded,
+                              size: 50,
+                              color: AppTheme.textGrey,
                             ),
-                          ),
-                        ),
-                        Text(
-                          '${filteredItems.length} items',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textGrey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 14),
-
-                    if (filteredItems.isEmpty)
-                      _buildEmptyState(
-                        hasItems: allItems.isNotEmpty,
-                      )
-                    else
-                      ...filteredItems.map(
-                            (item) => Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 12,
-                          ),
-                          child: ItemCard(
-                            item: item,
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      ItemDetailsScreen(
-                                        item: item,
-                                      ),
-                                ),
-                              );
-
-                              setState(() {});
-                            },
-                            onDelete: () {
-                              _deleteItem(item);
-                            },
-                          ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Unable to load your belongings',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textDark,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${snapshot.error}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textGrey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
+                    );
+                  }
+
+                  final allItems = snapshot.data ?? [];
+
+                  final filteredItems = getFilteredItems(allItems);
+
+                  final warrantyCount = allItems.where((item) {
+                    return WarrantyService.isActive(item);
+                  }).length;
+
+                  final expiringSoonCount = WarrantyService.getExpiringItems(
+                    allItems,
+                  ).length;
+
+                  return RefreshIndicator(
+                    color: AppTheme.primary,
+                    onRefresh: () async {
+                      // Firestore StreamBuilder updates automatically.
+                      // Small delay gives the refresh indicator
+                      // time to complete visually.
+                      await Future.delayed(const Duration(milliseconds: 400));
+                    },
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 100),
+                      children: [
+                        // ------------------------------------------------
+                        // STATISTICS
+                        // ------------------------------------------------
+
+                        Row(
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.inventory_2_outlined,
+                              value: '${allItems.length}',
+                              title: 'Total Items',
+                              iconColor: AppTheme.primary,
+                              iconBackground: AppTheme.primaryLight,
+                            ),
+
+                            const SizedBox(width: 12),
+
+                            _buildStatCard(
+                              icon: Icons.verified_outlined,
+                              value: '$warrantyCount',
+                              title: 'With Warranty',
+                              iconColor: AppTheme.mint,
+                              iconBackground: AppTheme.mintLight,
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 22),
+
+                        // ------------------------------------------------
+                        // WARRANTY
+                        // ------------------------------------------------
+                        if (expiringSoonCount > 0) ...[
+                          _buildWarrantyAlert(expiringSoonCount),
+                          const SizedBox(height: 22),
+                        ],
+
+                        // ------------------------------------------------
+                        // SEARCH
+                        // ------------------------------------------------
+                        _buildSearchSection(),
+
+                        const SizedBox(height: 24),
+
+                        // ------------------------------------------------
+                        // TITLE
+                        // ------------------------------------------------
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'My Belongings',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.textDark,
+                                  letterSpacing: -0.4,
+                                ),
+                              ),
+                            ),
+
+                            Text(
+                              '${filteredItems.length} items',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textGrey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // ------------------------------------------------
+                        // ITEMS
+                        // ------------------------------------------------
+                        if (filteredItems.isEmpty)
+                          _buildEmptyState(hasItems: allItems.isNotEmpty)
+                        else
+                          ...filteredItems.map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ItemCard(
+                                item: item,
+
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ItemDetailsScreen(item: item),
+                                    ),
+                                  );
+                                },
+
+                                onDelete: () {
+                                  _deleteItem(item);
+                                },
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
 
+      // ------------------------------------------------------------
+      // FLOATING ADD BUTTON
+      // ------------------------------------------------------------
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.primary.withValues(alpha:0.25),
+              color: AppTheme.primary.withValues(alpha: 0.25),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),
@@ -734,9 +750,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           icon: const Icon(Icons.add_rounded),
           label: const Text(
             'Add Item',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
       ),

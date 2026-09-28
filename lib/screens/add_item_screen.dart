@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/item_model.dart';
 import '../theme/app_theme.dart';
+import '../services/firestore_service.dart';
 
 class AddItemScreen extends StatefulWidget {
   const AddItemScreen({super.key});
@@ -12,6 +13,9 @@ class AddItemScreen extends StatefulWidget {
 
 class _AddItemScreenState extends State<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
+
+
+  final FirestoreService _firestoreService = FirestoreService();
 
   final nameController = TextEditingController();
   final priceController = TextEditingController();
@@ -99,7 +103,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
   // SAVE ITEM
   // ------------------------------------------------------------
 
-  void _saveItem() {
+  Future<void> _saveItem() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -127,9 +131,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
       description: descriptionController.text.trim(),
     );
 
-    Navigator.pop(context, item);
-  }
+    try {
+      // Save to Firebase Firestore
+      await _firestoreService.addItem(item);
 
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Item saved successfully'),
+        ),
+      );
+
+      // Return item to Dashboard as before
+      Navigator.pop(context, item);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save item: $e'),
+        ),
+      );
+    }
+  }
   // ------------------------------------------------------------
   // SECTION HEADER
   // ------------------------------------------------------------
